@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'">
+  <title>Настройки клиента FreakRating</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <h1>Настройки клиента</h1>
+
+  <section>
+    <h2>Графика</h2>
+    <div id="backends" class="radios"></div>
+    <label class="check"><input type="checkbox" id="discrete"> Мощная видеокарта (ноутбуки с двумя)</label>
+    <p class="hint">Чёрный экран, мерцание или падения — попробуйте другой режим. Применяется после перезапуска.</p>
+    <p id="restart" class="restart" hidden>
+      Нужен перезапуск. <button id="relaunch">Перезапустить</button>
+    </p>
+  </section>
+
+  <section>
+    <h2>Рация</h2>
+    <p>Клавиша в фоне: <b id="ptt-key">—</b></p>
+    <div class="row">
+      <button id="ptt-set">Назначить</button>
+      <button id="ptt-clear" class="quiet">Выключить</button>
+    </div>
+    <p id="ptt-note" class="hint"></p>
+  </section>
+
+  <section>
+    <h2>Диагностика</h2>
+    <div class="row">
+      <button id="diag-copy">Скопировать диагностику</button>
+      <button id="dumps" class="quiet">Папка с дампами</button>
+    </div>
+    <p id="diag-note" class="hint"></p>
+  </section>
+
+  <script src="settings.js"></script>
+</body>
+</html>

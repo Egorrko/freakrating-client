@@ -1,0 +1,20 @@
+:root { color-scheme: dark; }
+body {
+  margin: 0; padding: 20px 24px; background: #1a0a1f; color: #f2e8f5;
+  font: 14px/1.45 system-ui, "Segoe UI", sans-serif;
+}
+h1 { font-size: 18px; margin: 0 0 16px; }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: #c9a3d6; margin: 0 0 8px; }
+section { border-top: 1px solid #3a1f44; padding: 14px 0; }
+.radios label, .check { display: block; padding: 3px 0; cursor: pointer; }
+.row { display: flex; gap: 8px; }
+button {
+  font: inherit; color: #1a0a1f; background: #f0a640; border: 0; border-radius: 4px;
+  padding: 6px 12px; cursor: pointer;
+}
+button.quiet { background: #3a1f44; color: #f2e8f5; }
+button:disabled { opacity: .5; cursor: default; }
+.hint { color: #a98bb3; font-size: 12px; margin: 8px 0 0; }
+.restart { color: #f0a640; margin: 8px 0 0; }
+code { background: #2a1233; padding: 1px 4px; border-radius: 3px; font-size: 12px; user-select: all; }
+pre { background: #2a1233; padding: 8px; border-radius: 4px; font-size: 11px; white-space: pre-wrap; user-select: all; }
