@@ -9,6 +9,7 @@ const { nextBackend, sanitize, availableBackends } = require("../dist/main/setti
 const { sanitizePresence } = require("../dist/main/discord.js")
 const { parseCli } = require("../dist/main/config.js")
 const { WindowVisibility } = require("../dist/main/visibility.js")
+const { EscapeGesture } = require("../dist/main/escape.js")
 
 test("свои адреса — в окне, чужие — в системный браузер", () => {
   const p = new NavigationPolicy("https://freakrating.lol/world")
@@ -87,4 +88,49 @@ test("видимость окна: событие только при смене
   assert.equal(v.update(win(false, true)), false)
   assert.equal(v.update(win(false, false)), true)
   assert.equal(v.update(win(false, true)), false)
+})
+
+test("Esc: придержать, дать активацию, отдать по порядку", async () => {
+  const log = []
+  let esc
+  let release
+  const target = {
+    grantGesture: () => {
+      log.push("grant")
+      return new Promise((r) => (release = r))
+    },
+    // Свой повтор приходит в before-input-event синхронно — его не придерживаем.
+    resend: (type, modifiers) => {
+      assert.equal(esc.handle({ type, key: "Escape" }), false)
+      log.push(`${type}:${modifiers.join("+")}`)
+    },
+  }
+  esc = new EscapeGesture(target, 50)
+  assert.equal(esc.handle({ type: "keyDown", key: "a" }), false)
+  assert.equal(esc.handle({ type: "char", key: "Escape" }), false)
+  assert.equal(esc.handle({ type: "keyDown", key: "Escape", shift: true }), true)
+  assert.equal(esc.handle({ type: "keyUp", key: "Escape" }), true)
+  await new Promise((r) => setTimeout(r, 5))
+  assert.deepEqual(log, ["grant"], "keyup не обгоняет keydown, пока нет активации")
+  release()
+  await esc.idle()
+  assert.deepEqual(log, ["grant", "keyDown:shift", "grant", "keyUp:"])
+})
+
+test("Esc: автоповтор без активации, зависшая страница не держит клавишу", async () => {
+  const log = []
+  const esc = new EscapeGesture(
+    {
+      grantGesture: () => {
+        log.push("grant")
+        return new Promise(() => {})
+      },
+      resend: (type, modifiers) => log.push(`${type}:${modifiers.join("+")}`),
+    },
+    10,
+  )
+  esc.handle({ type: "keyDown", key: "Escape", isAutoRepeat: true })
+  esc.handle({ type: "keyDown", key: "Escape" })
+  await esc.idle()
+  assert.deepEqual(log, ["keyDown:isautorepeat", "grant", "keyDown:"])
 })

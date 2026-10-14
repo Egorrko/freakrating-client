@@ -35,6 +35,7 @@ import { PushToTalk } from "./ptt"
 import { DiscordPresence } from "./discord"
 import { createTray } from "./tray"
 import { WindowVisibility } from "./visibility"
+import { EscapeGesture } from "./escape"
 
 // ---------- до app.ready ----------
 
@@ -126,7 +127,19 @@ function createWindow(): BrowserWindow {
     win = null
   })
 
+  const wc = w.webContents
+  const escape = new EscapeGesture({
+    grantGesture: () => wc.executeJavaScript("0", true),
+    resend: (type, modifiers) => {
+      if (!wc.isDestroyed()) wc.sendInputEvent({ type, keyCode: "Escape", modifiers })
+    },
+  })
   w.webContents.on("before-input-event", (event, input) => {
+    // Esc — с активацией: страница вернёт захват мыши без клика (escape.ts).
+    if (policy.isAppUrl(wc.getURL()) && escape.handle(input)) {
+      event.preventDefault()
+      return
+    }
     if (input.type !== "keyDown") return
     // Ctrl+, — настройки клиента (меню нет, а трей есть не везде).
     if ((input.control || input.meta) && input.key === ",") {

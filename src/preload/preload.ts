@@ -57,6 +57,9 @@ const api = {
   clientVersion: info.clientVersion,
   platform: info.platform,
 
+  /** Esc даёт странице пользовательскую активацию: после него можно снова захватить мышь. */
+  escapeGesture: true,
+
   /** Рация глобальной клавишей: "down" — нажали, "up" — отпустили. */
   onPtt: (cb: (state: "down" | "up") => void): Unsubscribe => subscribe("fc:ptt", cb),
 
