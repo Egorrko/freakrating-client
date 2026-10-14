@@ -12,9 +12,13 @@ const app = await electron.launch({ args: [".", `--url=${base}/world`], env: { .
 const win = await app.firstWindow()
 win.on("console", (m) => m.type() === "error" && console.log("console:", m.text().slice(0, 200)))
 await win.waitForLoadState("domcontentloaded")
-await win.goto(`${base}/dev/login/${encodeURIComponent(nick)}?to=world`)
+await win.goto(`${base}/dev/login/${encodeURIComponent(nick)}?to=world&room=lobby`)
 await win.waitForURL(/\/world/, { timeout: 30_000 })
-await win.waitForTimeout(8_000)
+await win.waitForTimeout(4_000)
+// Титульный экран мира: «Войти в мир» — внутрь, к аватарам.
+await win.getByText("Войти в мир").click({ timeout: 5_000 }).catch(() => {})
+await win.getByText("Принимаю").click({ timeout: 3_000 }).catch(() => {}) // правила мира, раз на ник
+await win.waitForTimeout(10_000)
 
 const api = await win.evaluate(async () => {
   const fc = window.freakClient
