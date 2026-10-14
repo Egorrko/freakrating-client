@@ -34,6 +34,7 @@ import { collectDiagnostics, recordCrash, startCrashReporter, type CrashEvent } 
 import { PushToTalk } from "./ptt"
 import { DiscordPresence } from "./discord"
 import { createTray } from "./tray"
+import { WindowVisibility } from "./visibility"
 
 // ---------- до app.ready ----------
 
@@ -70,6 +71,7 @@ let recovering = false
 let pendingRecovery: (CrashEvent & { streak: number }) | null = null
 let suggestedBackendThisSession = false
 let unresponsiveTimer: NodeJS.Timeout | null = null
+const visibility = new WindowVisibility()
 
 // ---------- окно мира ----------
 
@@ -103,6 +105,7 @@ function createWindow(): BrowserWindow {
 
   guardContents(w.webContents)
   watchCrashes(w)
+  watchVisibility(w)
 
   w.on("close", (e) => {
     saveWindowState(w)
@@ -140,6 +143,23 @@ function createWindow(): BrowserWindow {
   void w.loadURL(startUrl)
   if (cli.devtools) w.webContents.openDevTools({ mode: "detach" })
   return w
+}
+
+/** Свернули, спрятали в трей, вернули — странице `onWindowVisibility`. */
+function watchVisibility(w: BrowserWindow): void {
+  const push = () => {
+    if (w.isDestroyed()) return
+    const hidden = visibility.update(w)
+    if (hidden !== null) w.webContents.send("fc:windowVisibility", hidden)
+  }
+  w.on("minimize", push)
+  w.on("restore", push)
+  w.on("hide", push)
+  w.on("show", push)
+  // Перезагруженная страница начинает с «видно»: спрятанное окно ей напоминаем.
+  w.webContents.on("did-finish-load", () => {
+    if (visibility.current) w.webContents.send("fc:windowVisibility", true)
+  })
 }
 
 function saveWindowState(w: BrowserWindow): void {

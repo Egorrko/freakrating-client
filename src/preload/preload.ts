@@ -37,6 +37,19 @@ function onCrashRecovered(cb: (info: unknown) => void): Unsubscribe {
   return unsubscribe
 }
 
+// Окно свёрнуто или спрятано. Страница могла подписаться позже события — отдаём
+// последнее «спрятано» при подписке.
+let windowHidden = false
+ipcRenderer.on("fc:windowVisibility", (_e, hidden: boolean) => {
+  windowHidden = hidden === true
+})
+
+function onWindowVisibility(cb: (hidden: boolean) => void): Unsubscribe {
+  const unsubscribe = subscribe("fc:windowVisibility", cb)
+  if (windowHidden) queueMicrotask(() => cb(true))
+  return unsubscribe
+}
+
 const info = ipcRenderer.sendSync("fc:info") as { clientVersion: string; platform: string }
 
 const api = {
@@ -49,6 +62,9 @@ const api = {
 
   /** Мир перезагружен после падения GPU/страницы. */
   onCrashRecovered,
+
+  /** Окно свернули или спрятали (`true`) и вернули (`false`): не рисовать кадры, пока не видно. */
+  onWindowVisibility,
 
   /** Настройки клиента поменялись (игрок что-то переключил в окне настроек). */
   onSettingsChanged: (cb: (settings: unknown) => void): Unsubscribe => subscribe("fc:settingsChanged", cb),

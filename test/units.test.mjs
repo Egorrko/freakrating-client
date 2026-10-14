@@ -8,6 +8,7 @@ const { NavigationPolicy, isWorldPath } = require("../dist/main/navigation.js")
 const { nextBackend, sanitize, availableBackends } = require("../dist/main/settings.js")
 const { sanitizePresence } = require("../dist/main/discord.js")
 const { parseCli } = require("../dist/main/config.js")
+const { WindowVisibility } = require("../dist/main/visibility.js")
 
 test("свои адреса — в окне, чужие — в системный браузер", () => {
   const p = new NavigationPolicy("https://freakrating.lol/world")
@@ -74,4 +75,16 @@ test("флаги запуска", () => {
   assert.equal(parseCli([], {}).url, "https://freakrating.lol/world")
   assert.equal(parseCli(["--url=http://localhost:4000/world"], {}).url, "http://localhost:4000/world")
   assert.equal(parseCli([], { FREAK_URL: "http://x/world" }).url, "http://x/world")
+})
+
+test("видимость окна: событие только при смене", () => {
+  const v = new WindowVisibility()
+  const win = (minimized, visible) => ({ isMinimized: () => minimized, isVisible: () => visible })
+  assert.equal(v.update(win(false, true)), null)
+  assert.equal(v.update(win(true, true)), true)
+  assert.equal(v.current, true)
+  assert.equal(v.update(win(true, false)), null)
+  assert.equal(v.update(win(false, true)), false)
+  assert.equal(v.update(win(false, false)), true)
+  assert.equal(v.update(win(false, true)), false)
 })

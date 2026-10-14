@@ -133,6 +133,7 @@ Workflow создаёт **черновик** релиза с `.exe`, `.AppImage`
 | `src/main/ptt.ts` | рация: uiohook и канал для Wayland |
 | `src/main/discord.ts` | Rich Presence |
 | `src/main/diagnostics.ts` | метрики, GPU-info, дампы |
+| `src/main/visibility.ts` | свёрнуто ли окно (`onWindowVisibility`) |
 | `src/preload/preload.ts` | `window.freakClient` |
 | `src/settings/` | окно настроек клиента |
 
