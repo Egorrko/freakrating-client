@@ -231,7 +231,7 @@ function recover(ev: Omit<CrashEvent, "at" | "url">, killRenderer = false): void
   // GPU и страница часто падают парой — это одно падение.
   if (recovering) return
   recovering = true
-  setTimeout(() => (recovering = false), 5_000)
+  setTimeout(() => (recovering = false), 3_000)
 
   const now = Date.now()
   crashStreak = now - lastCrashAt > CRASH_STREAK_RESET_MS ? 1 : crashStreak + 1
@@ -250,9 +250,9 @@ function recover(ev: Omit<CrashEvent, "at" | "url">, killRenderer = false): void
 }
 
 async function suggestOtherBackend(): Promise<void> {
-  if (suggestedBackendThisSession || !win) return
-  suggestedBackendThisSession = true
   const next = nextBackend(gpu.backend)
+  if (suggestedBackendThisSession || !win || !next) return
+  suggestedBackendThisSession = true
   const { response } = await dialog.showMessageBox(win, {
     type: "warning",
     buttons: [`Переключить на ${BACKEND_LABELS[next]} и перезапустить`, "Оставить как есть"],

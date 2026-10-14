@@ -27,19 +27,27 @@ export const BACKEND_LABELS: Record<GraphicsBackend, string> = {
 }
 
 /** Бэкенды ANGLE, которые есть смысл предлагать на этой ОС. */
-export function availableBackends(platform = process.platform): GraphicsBackend[] {
+export function availableBackends(platform = process.platform, env = process.env): GraphicsBackend[] {
   if (platform === "win32") return ["auto", "d3d11", "vulkan", "gl"]
+  // На Wayland Chromium с Vulkan не работает («not compatible with Vulkan»).
+  if (platform === "linux" && (env.XDG_SESSION_TYPE === "wayland" || env.WAYLAND_DISPLAY)) return ["auto", "gl"]
   return ["auto", "gl", "vulkan"]
 }
 
 export function isBackend(value: unknown, platform = process.platform): value is GraphicsBackend {
-  return typeof value === "string" && (availableBackends(platform) as string[]).includes(value)
+  return typeof value === "string" && (availableBackends(platform, {}) as string[]).includes(value)
 }
 
 /** Следующий бэкенд по кругу — его предлагаем после падений подряд. */
-export function nextBackend(current: GraphicsBackend, platform = process.platform): GraphicsBackend {
+/** null — предложить нечего (на Wayland есть только OpenGL). */
+export function nextBackend(
+  current: GraphicsBackend,
+  platform = process.platform,
+  env = process.env,
+): GraphicsBackend | null {
   // «Авто» — это D3D11 на Windows и OpenGL на Linux: после него — следующий за ним.
-  const order: GraphicsBackend[] = platform === "win32" ? ["d3d11", "vulkan", "gl"] : ["gl", "vulkan"]
+  const order = availableBackends(platform, env).filter((b) => b !== "auto")
+  if (order.length < 2) return null
   const effective = current === "auto" ? order[0] : current
   return order[(order.indexOf(effective) + 1) % order.length]
 }

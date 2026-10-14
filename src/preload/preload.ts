@@ -21,6 +21,22 @@ function subscribe<T>(channel: string, cb: (payload: T) => void): Unsubscribe {
   }
 }
 
+// Событие о восстановлении приходит на did-finish-load — страница могла ещё не
+// подписаться. Запоминаем и отдаём при подписке.
+let lastRecovery: unknown = null
+ipcRenderer.on("fc:crashRecovered", (_e, payload) => {
+  lastRecovery = payload
+})
+
+function onCrashRecovered(cb: (info: unknown) => void): Unsubscribe {
+  const unsubscribe = subscribe("fc:crashRecovered", cb)
+  if (lastRecovery) {
+    const payload = lastRecovery
+    queueMicrotask(() => cb(payload))
+  }
+  return unsubscribe
+}
+
 const info = ipcRenderer.sendSync("fc:info") as { clientVersion: string; platform: string }
 
 const api = {
@@ -32,7 +48,7 @@ const api = {
   onPtt: (cb: (state: "down" | "up") => void): Unsubscribe => subscribe("fc:ptt", cb),
 
   /** Мир перезагружен после падения GPU/страницы. */
-  onCrashRecovered: (cb: (info: unknown) => void): Unsubscribe => subscribe("fc:crashRecovered", cb),
+  onCrashRecovered,
 
   /** Настройки клиента поменялись (игрок что-то переключил в окне настроек). */
   onSettingsChanged: (cb: (settings: unknown) => void): Unsubscribe => subscribe("fc:settingsChanged", cb),

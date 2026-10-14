@@ -53,6 +53,7 @@
     $<HTMLButtonElement>("ptt-set").disabled = !canCapture
     const note = $("ptt-note")
     note.replaceChildren()
+    $("ptt-buttons").hidden = !canCapture
     if (p.fifoPath && !canCapture) {
       // Wayland: глобальные клавиши задаёт композитор.
       $("ptt-key").textContent = "задаётся в настройках Hyprland/Sway"
