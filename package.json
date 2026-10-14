@@ -3,7 +3,10 @@
   "productName": "FreakRating",
   "version": "0.1.0",
   "description": "Десктоп-клиент 3D-мира FreakRating",
-  "author": "FreakRating",
+  "author": {
+    "name": "FreakRating",
+    "email": "noreply@freakrating.lol"
+  },
   "license": "UNLICENSED",
   "private": true,
   "main": "dist/main/main.js",
@@ -13,8 +16,8 @@
     "dev": "npm run build && electron . --url=http://localhost:4000/world",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "npm run build && node --test test/",
-    "dist:win": "npm run build && electron-builder --win nsis --x64",
-    "dist:linux": "npm run build && electron-builder --linux AppImage --x64"
+    "dist:win": "npm run build && electron-builder --win nsis --x64 --publish never",
+    "dist:linux": "npm run build && electron-builder --linux AppImage deb --x64 --publish never"
   },
   "build": {
     "appId": "lol.freakrating.client",
@@ -55,15 +58,29 @@
     },
     "linux": {
       "target": [
-        "AppImage"
+        "AppImage",
+        "deb"
       ],
       "category": "Game",
       "icon": "build/icon.png",
-      "artifactName": "FreakRating-${version}.${ext}"
+      "maintainer": "FreakRating <noreply@freakrating.lol>",
+      "synopsis": "Десктоп-клиент 3D-мира FreakRating",
+      "artifactName": "FreakRating-${version}-${arch}.${ext}",
+      "executableArgs": [
+        "--ozone-platform-hint=auto"
+      ]
     },
-    "publish": {
-      "provider": "github",
-      "releaseType": "release"
+    "deb": {
+      "depends": [
+        "libgtk-3-0",
+        "libnss3",
+        "libxss1",
+        "libxtst6",
+        "xdg-utils",
+        "libatspi2.0-0",
+        "libuuid1",
+        "libsecret-1-0"
+      ]
     }
   },
   "devDependencies": {
@@ -80,5 +97,6 @@
   "allowScripts": {
     "uiohook-napi": false,
     "electron-winstaller": false
-  }
+  },
+  "homepage": "https://freakrating.lol"
 }
