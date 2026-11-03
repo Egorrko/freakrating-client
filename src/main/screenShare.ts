@@ -13,13 +13,13 @@
 //  - macOS — без звука.
 import { BrowserWindow, desktopCapturer, ipcMain, session, type DesktopCapturerSource, type Streams } from "electron"
 import { join } from "node:path"
-import { isWayland } from "./ptt"
 
 export type SourceMode = "portal" | "picker"
 
 /** Как выбрать источник: системным окном портала или своим. */
 export function sourceMode(platform: NodeJS.Platform, env: NodeJS.ProcessEnv): SourceMode {
-  return platform === "linux" && isWayland(env) ? "portal" : "picker"
+  const wayland = env.XDG_SESSION_TYPE === "wayland" || !!env.WAYLAND_DISPLAY
+  return platform === "linux" && wayland ? "portal" : "picker"
 }
 
 /** Звук показа: где он берётся. */
