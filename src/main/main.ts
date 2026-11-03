@@ -36,6 +36,8 @@ import { DiscordPresence } from "./discord"
 import { createTray } from "./tray"
 import { WindowVisibility } from "./visibility"
 import { EscapeGesture } from "./escape"
+import { screenAudioKind, setupScreenShare } from "./screenShare"
+import { ScreenAudio } from "./screenAudio"
 
 // ---------- до app.ready ----------
 
@@ -59,6 +61,7 @@ const startUrl = resumeUrl && policy.isAppUrl(resumeUrl) ? resumeUrl : cli.url
 
 const ptt = new PushToTalk()
 const discord = new DiscordPresence()
+const screenAudio = new ScreenAudio()
 
 let win: BrowserWindow | null = null
 let settingsWin: BrowserWindow | null = null
@@ -203,7 +206,11 @@ function guardContents(wc: WebContents): void {
   const remember = (url: string) => {
     if (policy.isAppUrl(url)) lastAppUrl = url
   }
-  wc.on("did-navigate", (_e, url) => remember(url))
+  wc.on("did-navigate", (_e, url) => {
+    remember(url)
+    // Страница ушла или перезагрузилась — её показ кончился.
+    screenAudio.stop()
+  })
   wc.on("did-navigate-in-page", (_e, url, isMainFrame) => isMainFrame && remember(url))
   wc.on("did-finish-load", () => {
     if (pendingRecovery) {
@@ -395,7 +402,7 @@ async function diagnostics() {
 
 function setupIpc(): void {
   ipcMain.on("fc:info", (e) => {
-    e.returnValue = { clientVersion: app.getVersion(), platform: process.platform }
+    e.returnValue = { clientVersion: app.getVersion(), platform: process.platform, screenAudio: screenAudioKind(process.platform) }
   })
   ipcMain.on("fc:setPresence", (e, presence) => {
     if (fromWorld(e)) discord.set(presence)
@@ -412,6 +419,10 @@ function setupIpc(): void {
   })
   ipcMain.handle("fc:openSettings", (e) => {
     if (fromWorld(e)) openSettingsWindow()
+  })
+  ipcMain.handle("fc:startScreenAudio", (e) => (fromWorld(e) ? screenAudio.start() : null))
+  ipcMain.handle("fc:stopScreenAudio", (e) => {
+    if (fromWorld(e)) screenAudio.stop()
   })
 
   // Только окно настроек.
@@ -463,6 +474,7 @@ app.on("window-all-closed", () => {
 app.on("will-quit", () => {
   ptt.stop()
   discord.stop()
+  screenAudio.stop()
 })
 
 void app.whenReady().then(() => {
@@ -470,6 +482,7 @@ void app.whenReady().then(() => {
   // Ctrl+Shift+I и зум — их Electron вешает только на меню по умолчанию.
   Menu.setApplicationMenu(null)
   setupPermissions()
+  setupScreenShare({ isAppOrigin: (origin) => policy.isAppUrl(origin), parent: () => win })
   setupIpc()
   if (settings.preferDiscreteGpu) preferDiscreteGpuOnWindows(true)
 

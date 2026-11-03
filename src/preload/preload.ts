@@ -50,7 +50,7 @@ function onWindowVisibility(cb: (hidden: boolean) => void): Unsubscribe {
   return unsubscribe
 }
 
-const info = ipcRenderer.sendSync("fc:info") as { clientVersion: string; platform: string }
+const info = ipcRenderer.sendSync("fc:info") as { clientVersion: string; platform: string; screenAudio: string }
 
 const api = {
   apiVersion: API_VERSION,
@@ -87,6 +87,18 @@ const api = {
 
   /** Открыть окно настроек клиента. */
   openSettings: (): Promise<void> => ipcRenderer.invoke("fc:openSettings"),
+
+  /**
+   * Показ экрана: getDisplayMedia работает, звук — `screenAudio`:
+   * "loopback" — уже в дорожке getDisplayMedia, "virtual-mic" — взять startScreenAudio, "none" — нет.
+   */
+  screenShare: true,
+  screenAudio: info.screenAudio,
+
+  /** Linux: свести звук программ (кроме клиента) в микрофон; его метка для getUserMedia или null. */
+  startScreenAudio: (): Promise<{ deviceLabel: string } | null> => ipcRenderer.invoke("fc:startScreenAudio"),
+
+  stopScreenAudio: (): Promise<void> => ipcRenderer.invoke("fc:stopScreenAudio"),
 }
 
 contextBridge.exposeInMainWorld("freakClient", Object.freeze(api))

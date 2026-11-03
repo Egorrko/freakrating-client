@@ -134,3 +134,20 @@ test("Esc: автоповтор без активации, зависшая ст
   await esc.idle()
   assert.deepEqual(log, ["keyDown:isautorepeat", "grant", "keyDown:"])
 })
+
+test("показ экрана: Wayland — окно портала, иначе своё; звук по ОС", () => {
+  const { sourceMode, screenAudioKind } = require("../dist/main/screenShare.js")
+  assert.equal(sourceMode("linux", { XDG_SESSION_TYPE: "wayland" }), "portal")
+  assert.equal(sourceMode("linux", { WAYLAND_DISPLAY: "wayland-1" }), "portal")
+  assert.equal(sourceMode("linux", { XDG_SESSION_TYPE: "x11" }), "picker")
+  assert.equal(sourceMode("win32", {}), "picker")
+  assert.equal(screenAudioKind("win32"), "loopback")
+  assert.equal(screenAudioKind("linux"), "virtual-mic")
+  assert.equal(screenAudioKind("darwin"), "none")
+})
+
+test("окно выбора: экраны по-русски", () => {
+  const { screenName } = require("../dist/main/screenShare.js")
+  assert.equal(screenName(0, 1), "Весь экран")
+  assert.equal(screenName(1, 2), "Экран 2")
+})

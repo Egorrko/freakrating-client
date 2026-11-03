@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src data:">
+  <title>Что показать</title>
+  <link rel="stylesheet" href="picker.css">
+</head>
+<body>
+  <header>
+    <h1>Что показать на экране</h1>
+    <button id="cancel" class="quiet">Отмена</button>
+  </header>
+  <section id="screens-block">
+    <h2>Экраны</h2>
+    <div id="screens" class="grid"></div>
+  </section>
+  <section id="windows-block">
+    <h2>Окна</h2>
+    <div id="windows" class="grid"></div>
+  </section>
+  <p id="empty" class="hint" hidden>Нечего показать: система не отдала ни экранов, ни окон.</p>
+  <script src="picker.js"></script>
+</body>
+</html>

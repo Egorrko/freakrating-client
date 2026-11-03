@@ -179,6 +179,31 @@ interface ClientSettings {
 
 Открыть окно настроек клиента (то же, что Ctrl+, или трей → «Настройки»).
 
+## Показ экрана
+
+Поля и методы появились после 0.3.0 без подъёма `apiVersion`. У старых
+клиентов `screenShare` нет — там `getDisplayMedia` всегда отклоняется.
+
+| Поле | Тип | Что |
+|---|---|---|
+| `screenShare` | `true` \| нет | `getDisplayMedia` работает: клиент покажет окно выбора. На Linux/Wayland — системное окно портала, на Windows и X11 — своё с превью. |
+| `screenAudio` | `"loopback" \| "virtual-mic" \| "none"` | Где звук показа: `"loopback"` (Windows) — уже в дорожке `getDisplayMedia`, звук системы без звука самого клиента; `"virtual-mic"` (Linux) — отдельно, через `startScreenAudio`; `"none"` — звука нет. |
+
+Звук самого клиента (мир, голоса) в показ не попадает ни на одной ОС —
+иначе зрители слышат себя эхом.
+
+### `startScreenAudio(): Promise<{ deviceLabel: string } | null>`
+
+Linux: сводит звук всех программ, кроме клиента, в виртуальный микрофон
+(venmic, PipeWire) и возвращает его метку (`"vencord-screen-share"`). Страница
+находит устройство по метке в `enumerateDevices()` (появляется не сразу — ждите
+до ~1 с) и берёт его `getUserMedia` с `echoCancellation`, `noiseSuppression`,
+`autoGainControl: false`. `null` — нельзя: не Linux, нет PipeWire.
+
+### `stopScreenAudio(): Promise<void>`
+
+Показ кончился — разобрать микрофон. Перезагрузка страницы разбирает его сама.
+
 ## Что клиент делает сам, без API
 
 - Звук без клика (autoplay), без фонового троттлинга таймеров и рендера.

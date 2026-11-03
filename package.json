@@ -34,7 +34,8 @@
       "package.json"
     ],
     "asarUnpack": [
-      "node_modules/uiohook-napi/**"
+      "node_modules/uiohook-napi/**",
+      "node_modules/@vencord/venmic/**"
     ],
     "npmRebuild": false,
     "win": {
@@ -96,7 +97,11 @@
   },
   "allowScripts": {
     "uiohook-napi": false,
-    "electron-winstaller": false
+    "electron-winstaller": false,
+    "@vencord/venmic": false
   },
-  "homepage": "https://freakrating.lol"
+  "homepage": "https://freakrating.lol",
+  "optionalDependencies": {
+    "@vencord/venmic": "^7.2.5"
+  }
 }
