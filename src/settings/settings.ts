@@ -23,6 +23,7 @@
     relaunch(): Promise<void>
     copyDiagnostics(): Promise<boolean>
     openDumps(): Promise<void>
+    recordProfile(): Promise<string | { error: string } | null>
     onChanged(cb: (s: PublicSettings) => void): void
   }
   const api = (window as unknown as { clientSettings: SettingsApi }).clientSettings
@@ -90,6 +91,17 @@
       : "Не получилось."
   })
   $("dumps").addEventListener("click", () => void api.openDumps())
+  $("profile").addEventListener("click", async () => {
+    const btn = $<HTMLButtonElement>("profile")
+    const note = $("profile-note")
+    btn.disabled = true
+    note.textContent = "Через 5 секунд начнётся запись на 10 секунд — вернитесь в мир и играйте как обычно, там, где тормозит."
+    const result = await api.recordProfile()
+    btn.disabled = false
+    if (typeof result === "string") note.textContent = `Готово: ${result}. Папка открылась — отправьте её целиком (заархивируйте) разработчикам.`
+    else if (result) note.textContent = `Не получилось: ${result.error}`
+    else note.textContent = "Запись уже идёт."
+  })
 
   api.onChanged(render)
   void api.get().then(render)

@@ -31,6 +31,7 @@ import {
 } from "./settings"
 import { NavigationPolicy, isExternalScheme, isWorldPath, safeUrl } from "./navigation"
 import { collectDiagnostics, recordCrash, startCrashReporter, type CrashEvent } from "./diagnostics"
+import { recordProfile } from "./profile"
 import { PushToTalk } from "./ptt"
 import { DiscordPresence } from "./discord"
 import { createTray } from "./tray"
@@ -64,6 +65,10 @@ const discord = new DiscordPresence()
 const screenAudio = new ScreenAudio()
 
 let win: BrowserWindow | null = null
+/** Идёт «Записать замер» — второй не запускаем. */
+let profiling = false
+/** Секунд до начала записи замера: вернуться в мир и играть. */
+const PROFILE_LEAD_MS = 5000
 let settingsWin: BrowserWindow | null = null
 let quitting = false
 let lastAppUrl = startUrl
@@ -446,6 +451,22 @@ function setupIpc(): void {
     if (!fromSettings(e)) return false
     clipboard.writeText(JSON.stringify(await diagnostics(), null, 2))
     return true
+  })
+  // «Записать замер»: окно мира — вперёд, 5 с вернуться в игру, потом след и счётчики.
+  ipcMain.handle("fc:recordProfile", async (e) => {
+    if (!fromSettings(e) || profiling) return null
+    profiling = true
+    try {
+      if (win && !win.isDestroyed()) win.focus()
+      await new Promise((r) => setTimeout(r, PROFILE_LEAD_MS))
+      const dir = await recordProfile(diagnostics)
+      shell.showItemInFolder(join(dir, "system.json"))
+      return dir
+    } catch (error) {
+      return { error: (error as Error).message }
+    } finally {
+      profiling = false
+    }
   })
   ipcMain.handle("fc:openDumps", (e) => {
     if (fromSettings(e)) void shell.openPath(app.getPath("crashDumps"))

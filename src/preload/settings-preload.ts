@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld(
     relaunch: () => ipcRenderer.invoke("fc:relaunch"),
     copyDiagnostics: () => ipcRenderer.invoke("fc:copyDiagnostics"),
     openDumps: () => ipcRenderer.invoke("fc:openDumps"),
+    recordProfile: () => ipcRenderer.invoke("fc:recordProfile"),
     onChanged: (cb: (s: unknown) => void) => {
       ipcRenderer.on("fc:settingsChanged", (_e, s) => cb(s))
     },

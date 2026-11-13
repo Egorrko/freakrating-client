@@ -151,3 +151,19 @@ test("окно выбора: экраны по-русски", () => {
   assert.equal(screenName(0, 1), "Весь экран")
   assert.equal(screenName(1, 2), "Экран 2")
 })
+
+test("typeperf: движки 3D по процессам складываются, пустые — null", () => {
+  const { parseTypeperf } = require("../dist/main/profile.js")
+  const csv = [
+    '"(PDH-CSV 4.0) (RTZ)(0)","\\\\PC\\GPU Engine(pid_10_luid_0x0_phys_0_eng_0_engtype_3D)\\Utilization Percentage","\\\\PC\\GPU Engine(pid_20_luid_0x0_phys_0_eng_0_engtype_3D)\\Utilization Percentage","\\\\PC\\Processor Information(_Total)\\% Processor Performance","\\\\PC\\Thermal Zone Information(\\_TZ.TZ00)\\Temperature"',
+    '"11/14/2026 04:30:01.000","40.5","12.25","61.3","3332"',
+    '"11/14/2026 04:30:02.000","50","","58",""',
+    "Exiting, please wait...",
+  ].join("\r\n")
+  assert.deepEqual(parseTypeperf(csv), [
+    { counter: "GPU Engine 3D\\Utilization Percentage", values: [52.8, 50] },
+    { counter: "Processor Information(_Total)\\% Processor Performance", values: [61.3, 58] },
+    { counter: "Thermal Zone Information(\\_TZ.TZ00)\\Temperature", values: [3332, null] },
+  ])
+  assert.deepEqual(parseTypeperf(""), [])
+})
